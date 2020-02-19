@@ -735,7 +735,7 @@ void calibrate_sensors() {
   float                 z_gyro = 0;
   accel_t_gyro_union    accel_t_gyro;
  
-  Serial.println("Starting Calibration");
+//  Serial.println("Starting Calibration");
 
   // Discard the first set of values read from the IMU
   read_gyro_accel_vals((uint8_t *) &accel_t_gyro);
@@ -766,7 +766,7 @@ void calibrate_sensors() {
   base_y_gyro = y_gyro;
   base_z_gyro = z_gyro;
  
-  Serial.println("Finishing Calibration");
+//  Serial.println("Finishing Calibration");
 }
 
 

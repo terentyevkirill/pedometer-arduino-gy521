@@ -824,25 +824,28 @@ void setup()
 float x,y,z;  
 int steps = 0;                  // счетчик шагов (сбрасывается после отправки)
 int prev = 0;                   // магнитуда прошлого измерения
-int threshold = 5;              // порог
-int bt_send_frequency = 100;    // раз в 10 секунд (при задержке цикла loop в 100ms)
-int i = 0;                      // iteration counter (counts up to BT_SEND_FREQUENCY)
+int threshold = 3;              // порог
+int bt_send_frequency = 100;    // раз в bt_send_frequency/10 секунд (при задержке цикла loop в 100ms)
+int iter = 0;                      // iteration counter (counts up to BT_SEND_FREQUENCY)
 void loop()
 {
   
   int error;
   double dT;
   accel_t_gyro_union accel_t_gyro;
-
+  digitalWrite(13, LOW);
+  
   light(); // LED light control
 
   // every N seconds send steps via bluetooth, if there are any steps
-  if (i == bt_send_frequency && steps != 0) {
-    Serial.print("steps : ");
+  if (iter == bt_send_frequency && steps != 0) {
+//    Serial.print("steps : ");
     Serial.println(steps);
     // reset counters
     steps = 0;  
-    i = 0;
+    iter = 0;
+  } else if (iter > bt_send_frequency) {
+    iter = 0;
   }
   
    
@@ -948,18 +951,18 @@ void loop()
  //If the magnitude is greater than threshold and the previous magnitude is lesser than threshold value increase count.
   if(mag>=threshold && prev<threshold)
   {
-  	steps += 1;
+//    Serial.print("+1 : ");
+    steps += 1;
+//    Serial.println(steps);
+    digitalWrite(13, HIGH);
   } 
-//  Serial.print("it : ");
-//  Serial.println(i);
-//  Serial.print("steps : ");
-//  Serial.println(steps);
+
   prev = mag;
   x=angle_x;
   y=angle_y;
   z=angle_z;
 
-  i++;    // increment loop counter
+  iter++;    // increment loop counter
   // Delay so we don't swamp the serial port
   delay(100);
 //  Serial.write(10);
@@ -971,7 +974,7 @@ void light() {
       // Включаем все светодиоды.
       for (int i = 0; i < LED_COUNT; i++)
       {
-        strip.setPixelColor(i, strip.Color(50, 50, 50));// белый цвет.
+        strip.setPixelColor(i, strip.Color(50, 0, 0));// белый цвет.
       } 
       // Передаем цвета ленте.
       strip.show();

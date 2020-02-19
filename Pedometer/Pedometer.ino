@@ -821,18 +821,31 @@ void setup()
   set_last_read_angle_data(millis(), 0, 0, 0, 0, 0, 0);
 }
 
-float x,y,z;
-int count=0,prev=0;
-int threshold=3;
-
+float x,y,z;  
+int steps = 0;                  // счетчик шагов (сбрасывается после отправки)
+int prev = 0;                   // магнитуда прошлого измерения
+int threshold = 5;              // порог
+int bt_send_frequency = 100;    // раз в 10 секунд (при задержке цикла loop в 100ms)
+int i = 0;                      // iteration counter (counts up to BT_SEND_FREQUENCY)
 void loop()
 {
+  
   int error;
   double dT;
   accel_t_gyro_union accel_t_gyro;
 
+  light(); // LED light control
 
-  light();
+  // every N seconds send steps via bluetooth, if there are any steps
+  if (i == bt_send_frequency && steps != 0) {
+    Serial.print("steps : ");
+    Serial.println(steps);
+    // reset counters
+    steps = 0;  
+    i = 0;
+  }
+  
+   
   
 //  Serial.println(F(""));
 //  Serial.println(F("MPU-6050"));
@@ -922,8 +935,8 @@ void loop()
   float alpha = 0.96;
   float angle_x = alpha*gyro_angle_x + (1.0 - alpha)*accel_angle_x;
   float angle_y = alpha*gyro_angle_y + (1.0 - alpha)*accel_angle_y;
-//  float angle_z = alpha*gyro_angle_z + (1.0 - alpha)*accel_angle_z;
-  float angle_z = gyro_angle_z;  //Accelerometer doesn't give z-angle
+  float angle_z = alpha*gyro_angle_z + (1.0 - alpha)*accel_angle_z;
+//  float angle_z = gyro_angle_z;  //Accelerometer doesn't give z-angle
  
   // Update the saved data with the latest values
   set_last_read_angle_data(t_now, angle_x, angle_y, angle_z, unfiltered_gyro_angle_x, unfiltered_gyro_angle_y, unfiltered_gyro_angle_z);
@@ -935,16 +948,18 @@ void loop()
  //If the magnitude is greater than threshold and the previous magnitude is lesser than threshold value increase count.
   if(mag>=threshold && prev<threshold)
   {
-      	count+=1;
-  }
-
-  Serial.print("steps : ");
-  Serial.println(count);
+  	steps += 1;
+  } 
+//  Serial.print("it : ");
+//  Serial.println(i);
+//  Serial.print("steps : ");
+//  Serial.println(steps);
   prev = mag;
   x=angle_x;
   y=angle_y;
   z=angle_z;
- 
+
+  i++;    // increment loop counter
   // Delay so we don't swamp the serial port
   delay(100);
 //  Serial.write(10);
